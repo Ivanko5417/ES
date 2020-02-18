@@ -8,6 +8,7 @@ global domains
 	zakl=assign(string,string)
 global facts
 	rule(integer,usl,zakl)
+	log1(string,integer)
 	var(string,string)
 	goal_var(string)	
 	znach(string,string)
@@ -15,12 +16,14 @@ predicates
 	nondeterm load
 	nondeterm show
 	nondeterm output
+	nondeterm how
 	nondeterm reverseOutput (string, string)
 	nondeterm check(usl)
 	nondeterm checkUslovie(uslovie)
 	nondeterm start
 	nondeterm repeat
 	nondeterm menu (string)
+	nondeterm showInfo (string)
 goal
 start.
 
@@ -31,6 +34,7 @@ start:-  repeat,
          write ("1 - Load DB"), nl,
          write ("2 - Show rules list"), nl,
          write ("3 - Consulting"), nl,
+         write ("4 - How?"), nl,
          write ("Exit"), nl,
          write ("Please make your choice: "), readln (Choice),
          nl, nl,
@@ -39,6 +43,7 @@ start:-  repeat,
 menu("1"):- load, !,fail.
 menu("2"):- show, !,fail.
 menu("3"):- output, !,fail.
+menu("4"):- how, !,fail.
 menu("exit").
 
 
@@ -47,7 +52,6 @@ load:-retractall(_),consult("C:\\Users\\vdrob\\Documents\\Labs\\Lab6.dba"),write
 load.
 
 %SHOW
-show:-var(X,_), znach (X,Result), write("Variable: ",X, " = ", Result),nl, fail.
 show:-var(X,_), write("Variable: ",X),nl, fail.
 show:-rule(N,Rule,Zakl),write("¹: ",N," If: ",Rule," then: ",Zakl),nl,fail.
 show.
@@ -62,16 +66,15 @@ output:-
 	nl, !.
 output:- nl, write ("Nothing found:("), nl, fail.
 
-reverseOutput (G,Result):- write("Looking for: ", G), nl, znach (G,Result), write("Found value of ", G, " = ", Result), readchar(_), nl, !.
+reverseOutput (G,Result):- znach (G,Result), !.
 reverseOutput (G,Result):-
    var (G,Zapros), Zapros <> "",
    write (Zapros), readln (Result), 
    assert (znach(G,Result)), !. 
 reverseOutput(G,Result):-
    rule (N,Usl, assign(G,Result)),
-   write("[", N, "]Usl to check: ", Usl), nl,
-   readchar(_),
    check (Usl),
+   assert(log1(G,N)),
    assert (znach(G,Result)), !.
    
 check([]):- !.
@@ -94,9 +97,14 @@ checkUslovie(Uslovie):- Uslovie=lt(Perem,Vel), !,
 	XNumber<VelNumber.
 
 
-
+how:-var(X,_), znach (X,Result), write("Variable: ",X, " = ", Result),nl, fail.
+how:- repeat, write("Choose varialbe please: "), readln(Var), nl, showInfo(Var), Var = "exit".
+how.
 	 
- 
+showInfo(Var):- var (Var,Zapros), Zapros <> "", write("Variable was entered by YOU!"), nl.
+showInfo(Var):- log1(Var, N), rule(N, Usl, _), write("Variable was initialized because of rule [", N, "] ", Usl), nl.
+showInfo(_).
+
 %REPEAT
 repeat.
 repeat:-repeat.	  
